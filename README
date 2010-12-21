@@ -1,0 +1,19 @@
+This Qt library is in fact a wrapper around MaxMind's GeoIP library. Therefor,
+it also uses MaxMind's GeoIP databases.
+
+While this Qt library is released into the public domain (see UNLICENSE), the
+same cannot be said of MaxMind's GeoIP library, which is released under the
+LGPL license (see libGeoIP/COPYING).
+No changes have been made to any of the files in the libGeoIP directory. It is
+the latest version they provide: 1.4.7 beta 9. The Makefile has been removed,
+in favor of a newly added .pro file.
+
+You can download MaxMind's GeoIP databases here:
+• GeoLite City
+  - homepage: http://www.maxmind.com/app/geolitecity
+  - binary format download:
+    http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+• GeoLite ASN
+  - homepage: http://www.maxmind.com/app/asnum
+  - binary format download:
+    http://geolite.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz
