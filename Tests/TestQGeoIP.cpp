@@ -2,36 +2,12 @@
 
 QTEST_APPLESS_MAIN(TestQGeoIP);
 
-void TestQGeoIP::countryCodeByAddr() {
-    static QHostAddress ip;
-
-    QSKIP("A bug in libGeoIP prevents the country database to be used with GEOIP_INDEX_CACHE.", SkipAll);
-
-    this->geoIP = new QGeoIP();
-    QVERIFY(this->geoIP->open("./GeoIPCountry.dat") == true);
-
-    QFETCH(QString, ipString);
-    ip.setAddress(ipString);
-    QTEST(this->geoIP->countryCodeByAddr(ip), "countryCode");
-
-    delete this->geoIP;
-}
-
-void TestQGeoIP::countryCodeByAddr_data() {
-    QTest::addColumn<QString>("ipString");
-    QTest::addColumn<QString>("countryCode");
-
-    QTest::newRow("U.S.A") << "24.24.24.24" << "US";
-    QTest::newRow("Belgium") << "84.193.172.100" << "BE";
-    QTest::newRow("Netherlands") << "194.151.127.217" << "NL";
-}
-
 void TestQGeoIP::recordByAddr() {
     static QHostAddress ip;
     static QGeoIPRecord record;
 
     this->geoIP = new QGeoIP();
-    QVERIFY(this->geoIP->open("./GeoIPCity.dat") == true);
+    QVERIFY(this->geoIP->openDatabases("./GeoIPCity.dat", "./GeoIPISP.dat") == true);
 
     QFETCH(QString, ipString);
     ip.setAddress(ipString);
@@ -68,7 +44,7 @@ void TestQGeoIP::recordByAddr_data() {
             << "United States"
             << "New York"
             << "Baldwinsville"
-            << ""
+            << "AS11351 Road Runner HoldCo LLC"
             << "America/New_York"
             << (float) 43.1765
             << (float) -76.364
@@ -80,7 +56,7 @@ void TestQGeoIP::recordByAddr_data() {
             << "Belgium"
             << "Limburg"
             << "Hasselt"
-            << ""
+            << "AS6848 Telenet N.V."
             << "Europe/Brussels"
             << (float) 50.9333
             << (float) 5.3333
@@ -92,7 +68,7 @@ void TestQGeoIP::recordByAddr_data() {
             << "Netherlands"
             << "Zuid-Holland"
             << "Den Haag"
-            << ""
+            << "AS286 KPN Internet Backbone"
             << "Europe/Amsterdam"
             << (float) 52.0833
             << (float) 4.3

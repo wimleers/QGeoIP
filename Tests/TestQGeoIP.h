@@ -9,8 +9,6 @@ class TestQGeoIP: public QObject {
     Q_OBJECT
 
 private slots:
-    void countryCodeByAddr();
-    void countryCodeByAddr_data();
     void recordByAddr();
     void recordByAddr_data();
 

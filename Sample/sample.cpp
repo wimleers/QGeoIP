@@ -11,9 +11,8 @@ int main(int argc, char *argv[]) {
     int timePassed;
 
     QGeoIP geoIP;
+    geoIP.openDatabases("./GeoIPCity.dat", "./GeoIPISP.dat");
     QGeoIPRecord record1, record2;
-
-    qDebug() << "GeoIP DB opened:" << geoIP.open("./GeoIPCity.dat");
 
     QHostAddress ip1, ip2;
     ip1.setAddress("24.24.24.24");

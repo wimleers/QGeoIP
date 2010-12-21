@@ -70,15 +70,18 @@ public:
     QGeoIP();
     ~QGeoIP();
 
-    bool open(const QString &fname);
-    void close();
-    bool isOpen() const;
-    QGeoIP::DBType type() const;
-    QString countryCodeByAddr(const QHostAddress & ip);
-    QGeoIPRecord recordByAddr(const QHostAddress &ip);
+    bool openDatabases(const QString & cityDBFile, const QString & ISPDBFile);
+
+    QGeoIPRecord recordByAddr(const QHostAddress & ip);
 
 private:
-    GeoIP * db;
+    bool open(GeoIP ** db, const QString & fileName);
+    void close(GeoIP ** db);
+    bool isOpen(GeoIP const * const db) const;
+    QGeoIP::DBType type() const;
+
+    GeoIP * cityDB;
+    GeoIP * ISPDB;
 };
 
 #endif // QGEOIP_H

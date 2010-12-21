@@ -1,11 +1,26 @@
 #include "QGeoIP.h"
 
 QGeoIP::QGeoIP() {
-    this->db = NULL;
+    this->cityDB = NULL;
+    this->ISPDB  = NULL;
 }
 
 QGeoIP::~QGeoIP() {
-    this->close();
+    if (this->isOpen(this->cityDB))
+        this->close(&this->cityDB);
+    if (this->isOpen(this->ISPDB))
+        this->close(&this->ISPDB);
+}
+
+bool QGeoIP::openDatabases(const QString & cityDBFile, const QString & ISPDBFile) {
+    if (!this->open(&this->cityDB, cityDBFile)) {
+        qCritical("Could not open city DB, %s.", qPrintable(cityDBFile));
+        return false;
+    }
+    if (!this->open(&this->ISPDB, ISPDBFile)) {
+        qCritical("Could not open ISP DB, %s.", qPrintable(ISPDBFile));
+        return false;
+    }
 }
 
 /**
@@ -15,13 +30,10 @@ QGeoIP::~QGeoIP() {
  * @return
  *   true if successful, otherwise false.
  */
-bool QGeoIP::open(const QString & fileName) {
-    if (this->isOpen())
-        this->close();
-
-    this->db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_INDEX_CACHE);
-    if (this->db) {
-        GeoIP_set_charset(this->db, GEOIP_CHARSET_UTF8);
+bool QGeoIP::open(GeoIP ** db, const QString & fileName) {
+    *db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_INDEX_CACHE);
+    if (*db) {
+        GeoIP_set_charset(*db, GEOIP_CHARSET_UTF8);
         return true;
     }
     else {
@@ -30,63 +42,15 @@ bool QGeoIP::open(const QString & fileName) {
     }
 }
 
-void QGeoIP::close() {
-    if (this->isOpen()) {
-        GeoIP_delete(this->db);
-        this->db = NULL;
+void QGeoIP::close(GeoIP ** db) {
+    if (this->isOpen(*db)) {
+        GeoIP_delete(*db);
+        *db = NULL;
     }
 }
 
-bool QGeoIP::isOpen() const {
-  return this->db != NULL;
-}
-
-QGeoIP::DBType QGeoIP::type() const {
-  if (!this->isOpen())
-      return DBTypeUnknown;
-
-  switch (this->db->databaseType) {
-    case GEOIP_COUNTRY_EDITION:
-    case GEOIP_COUNTRY_EDITION_V6:
-      return DBTypeCountry;
-    case GEOIP_CITY_EDITION_REV0:
-    case GEOIP_CITY_EDITION_REV1:
-      return DBTypeCity;
-    case GEOIP_REGION_EDITION_REV0:
-    case GEOIP_REGION_EDITION_REV1:
-      return DBTypeRegion;
-    case GEOIP_ORG_EDITION:
-      return DBTypeOrganization;
-    case GEOIP_ISP_EDITION:
-      return DBTypeISP;
-    case GEOIP_PROXY_EDITION:
-      return DBTypeProxy;
-    case GEOIP_ASNUM_EDITION:
-      return DBTypeASN;
-    case GEOIP_NETSPEED_EDITION:
-      return DBTypeNetSpeed;
-    case GEOIP_DOMAIN_EDITION:
-      return DBTypeDomain;
-    default:
-      return DBTypeUnknown;
-  }
-}
-
-/**
- * Resolve an IP address to the corresponding country code (ISO-3166-1-alpha2).
- *
- * @return
- *   The corresponding country code, or a null QString.
- */
-QString QGeoIP::countryCodeByAddr(const QHostAddress & ip) {
-    if (this->isOpen() && !ip.isNull()) {
-        const char * addr = ip.toString().toAscii().constData();
-        const char * countryCode = GeoIP_country_code_by_addr(this->db, addr);
-        if (countryCode != NULL)
-            return QString::fromUtf8(countryCode);
-    }
-
-    return QString::null;
+bool QGeoIP::isOpen(GeoIP const * const db) const {
+    return db != NULL;
 }
 
 /**
@@ -103,20 +67,29 @@ QString QGeoIP::countryCodeByAddr(const QHostAddress & ip) {
  */
 QGeoIPRecord QGeoIP::recordByAddr(const QHostAddress & ip) {
     static QString country, city, region, isp, timeZone;
-    static const char * addr, * regionName;
+    const char * addr, * regionName, * ispName;
 
-    if (this->isOpen() && !ip.isNull()) {
+    if (this->isOpen(this->cityDB) && !ip.isNull()) {
         addr = ip.toString().toAscii().constData();
 
         GeoIPRecord * r;
         if (ip.protocol() == QAbstractSocket::IPv6Protocol)
-            r = GeoIP_record_by_addr_v6(this->db, addr);
+            r = GeoIP_record_by_addr_v6(this->cityDB, addr);
         else
-            r = GeoIP_record_by_addr(this->db, addr);
+            r = GeoIP_record_by_addr(this->cityDB, addr);
 
-        // TODO: get ISP
-        // GeoIP_org_by_addr
-        // GeoIP_org_by_addr_v6
+        // Look up the ISP for this IP address, but
+        isp = QString::null;
+        addr = ip.toString().toAscii().constData();
+        if (this->isOpen(this->ISPDB)) {
+            if (ip.protocol() == QAbstractSocket::IPv6Protocol)
+                ispName = GeoIP_org_by_name_v6(this->ISPDB, addr);
+            else
+                ispName = GeoIP_org_by_name(this->ISPDB, addr);
+
+            if (ispName != NULL)
+                isp = QString::fromUtf8(ispName);
+        }
 
         timeZone = QString::fromUtf8(GeoIP_time_zone_by_country_and_region(r->country_code, r->region));
 
@@ -128,7 +101,7 @@ QGeoIPRecord QGeoIP::recordByAddr(const QHostAddress & ip) {
             if (regionName != NULL)
                 region = QString::fromUtf8(regionName);
 
-            return QGeoIPRecord(country, region, city, "", timeZone, r->latitude, r->longitude, r->country_code, r->continent_code);
+            return QGeoIPRecord(country, region, city, isp, timeZone, r->latitude, r->longitude, r->country_code, r->continent_code);
         }
     }
 
