@@ -19,7 +19,7 @@ bool QGeoIP::open(const QString & fileName) {
     if (this->isOpen())
         this->close();
 
-    this->db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_STANDARD);
+    this->db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_INDEX_CACHE);
     if (this->db) {
         GeoIP_set_charset(this->db, GEOIP_CHARSET_UTF8);
         return true;
