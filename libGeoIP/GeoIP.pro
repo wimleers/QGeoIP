@@ -8,7 +8,7 @@ QT -= core gui
 CONFIG -= qt exceptions thread moc uic
 
 
-DEFINES += GEOIPDATADIR=\\\"$${PWD}\\\"
+DEFINES += GEOIPDATADIR=\\\"./data\\\"
 
 HEADERS += \
     GeoIP.h \

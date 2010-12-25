@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     int timePassed;
 
     QGeoIP geoIP;
-    geoIP.openDatabases("./GeoIPCity.dat", "./GeoIPISP.dat");
+    geoIP.openDatabases("./data/GeoIPCity.dat", "./data/GeoIPASNum.dat");
     QGeoIPRecord record1, record2;
 
     QHostAddress ip1, ip2;

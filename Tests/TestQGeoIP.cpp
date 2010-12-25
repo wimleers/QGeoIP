@@ -7,7 +7,7 @@ void TestQGeoIP::recordByAddr() {
     static QGeoIPRecord record;
 
     this->geoIP = new QGeoIP();
-    QVERIFY(this->geoIP->openDatabases("./GeoIPCity.dat", "./GeoIPISP.dat") == true);
+    QVERIFY(this->geoIP->openDatabases("./data/GeoIPCity.dat", "./data/GeoIPASNum.dat") == true);
 
     QFETCH(QString, ipString);
     ip.setAddress(ipString);

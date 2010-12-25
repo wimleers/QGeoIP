@@ -1,3 +1,6 @@
+Description
+-----------
+
 This Qt library is in fact a wrapper around MaxMind's GeoIP library. Therefor,
 it also uses MaxMind's GeoIP databases.
 
@@ -8,7 +11,13 @@ No changes have been made to any of the files in the libGeoIP directory. It is
 the latest version they provide: 1.4.7 beta 9. The Makefile has been removed,
 in favor of a newly added .pro file.
 
-You can download MaxMind's GeoIP databases here:
+For an overview of the available methods, see QGeoIP.h.
+
+
+Usage
+-----
+
+1) You can download MaxMind's GeoIP databases here:
 • GeoLite City
   - homepage: http://www.maxmind.com/app/geolitecity
   - binary format download:
@@ -17,3 +26,35 @@ You can download MaxMind's GeoIP databases here:
   - homepage: http://www.maxmind.com/app/asnum
   - binary format download:
     http://geolite.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz
+
+These files are compressed using gzip. First decompress them. Then, ensure
+they have the following filenames: "GeoIPCity.dat" and "GeoIPASNum.dat".
+Finally, move them to the QGeoIP's "data" directory.
+
+
+2) Build MaxMind's libGeoIP, by opening libGeoIP/GeoIP.pro, generating a
+makefile and running `make`.
+
+3) Now you can build and run both the included sample application and the unit
+tests.
+
+
+Using in your own project
+-------------------------
+All you have to do to include QGeoIP in your own app (and to automatically
+copy the .dat files to your app's builds), is including QGeoIP.pri in your
+.pro file:
+    include("/path/to/QGeoIP/QGeoIP.pri")
+
+Of course, you still have to build libGeoIP first, by opening
+libGeoIP/GeoIP.pro, generating a makefile and running `make`.
+
+
+Author
+------
+Wim Leers ~ http://wimleers.com/
+
+Written as part of the master thesis of Wim Leers at Hasselt University
+
+http://wimleers.com/tags/master-thesis
+http://uhasselt.be/
