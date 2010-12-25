@@ -21,6 +21,7 @@ bool QGeoIP::openDatabases(const QString & cityDBFile, const QString & ISPDBFile
         qCritical("Could not open ISP DB, %s.", qPrintable(ISPDBFile));
         return false;
     }
+    return true;
 }
 
 /**
