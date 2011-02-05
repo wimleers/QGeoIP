@@ -32,7 +32,7 @@ bool QGeoIP::openDatabases(const QString & cityDBFile, const QString & ISPDBFile
  *   true if successful, otherwise false.
  */
 bool QGeoIP::open(GeoIP ** db, const QString & fileName) {
-    *db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_INDEX_CACHE);
+    *db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_MMAP_CACHE);
     if (*db) {
         GeoIP_set_charset(*db, GEOIP_CHARSET_UTF8);
         return true;
