@@ -6,10 +6,7 @@ QGeoIP::QGeoIP() {
 }
 
 QGeoIP::~QGeoIP() {
-    if (this->isOpen(this->cityDB))
-        this->close(&this->cityDB);
-    if (this->isOpen(this->ISPDB))
-        this->close(&this->ISPDB);
+    this->closeDatabases();
 }
 
 bool QGeoIP::openDatabases(const QString & cityDBFile, const QString & ISPDBFile) {
@@ -21,37 +18,13 @@ bool QGeoIP::openDatabases(const QString & cityDBFile, const QString & ISPDBFile
         qCritical("Could not open ISP DB, %s.", qPrintable(ISPDBFile));
         return false;
     }
+
     return true;
 }
 
-/**
- * Open a GeoIP database. If a database is already opened in the current
- * instance, it will be closed before the requested database is opened.
- *
- * @return
- *   true if successful, otherwise false.
- */
-bool QGeoIP::open(GeoIP ** db, const QString & fileName) {
-    *db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_MMAP_CACHE);
-    if (*db) {
-        GeoIP_set_charset(*db, GEOIP_CHARSET_UTF8);
-        return true;
-    }
-    else {
-        qCritical("Unable to open MaxMind GeoIP database for reading: %s.", qPrintable(fileName));
-        return false;
-    }
-}
-
-void QGeoIP::close(GeoIP ** db) {
-    if (this->isOpen(*db)) {
-        GeoIP_delete(*db);
-        *db = NULL;
-    }
-}
-
-bool QGeoIP::isOpen(GeoIP const * const db) const {
-    return db != NULL;
+void QGeoIP::closeDatabases() {
+    this->close(&this->cityDB);
+    this->close(&this->ISPDB);
 }
 
 /**
@@ -106,7 +79,43 @@ QGeoIPRecord QGeoIP::recordByAddr(const QHostAddress & ip) {
         }
     }
 
+    // This function should only be called when at least the City DB is open.
+    qWarning("QGeoIP::recordByAddr(): MaxMind City DB is not open.");
+
+    // Satisfy compiler.
     return QGeoIPRecord();
+}
+
+
+//-----------------------------------------------------------------------------------
+// Private methods.
+
+/**
+ * Open a GeoIP database. If a database is already opened in the current
+ * instance, it will be closed before the requested database is opened.
+ *
+ * @return
+ *   true if successful, otherwise false.
+ */
+bool QGeoIP::open(GeoIP ** db, const QString & fileName) {
+    *db = GeoIP_open(fileName.toLocal8Bit().constData(), GEOIP_MMAP_CACHE);
+    if (this->isOpen(*db)) {
+        GeoIP_set_charset(*db, GEOIP_CHARSET_UTF8);
+        return true;
+    }
+    else
+        return false;
+}
+
+void QGeoIP::close(GeoIP ** db) {
+    if (this->isOpen(*db)) {
+        GeoIP_delete(*db);
+        *db = NULL;
+    }
+}
+
+bool QGeoIP::isOpen(GeoIP const * const db) const {
+    return db != NULL;
 }
 
 #ifdef DEBUG

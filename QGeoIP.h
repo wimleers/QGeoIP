@@ -71,6 +71,7 @@ public:
     ~QGeoIP();
 
     bool openDatabases(const QString & cityDBFile, const QString & ISPDBFile);
+    void closeDatabases();
 
     QGeoIPRecord recordByAddr(const QHostAddress & ip);
 
