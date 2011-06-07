@@ -52,18 +52,22 @@ QGeoIPRecord QGeoIP::recordByAddr(const QHostAddress & ip) {
         else
             r = GeoIP_record_by_addr(this->cityDB, addr);
 
-        // Look up the ISP for this IP address, but
+        // Look up the ISP for this IP address, but only if an ISP DB is open.
         isp = QString::null;
-        addr = ip.toString().toAscii().constData();
         if (this->isOpen(this->ISPDB)) {
             if (ip.protocol() == QAbstractSocket::IPv6Protocol)
                 ispName = GeoIP_org_by_name_v6(this->ISPDB, addr);
             else
                 ispName = GeoIP_org_by_name(this->ISPDB, addr);
 
-            if (ispName != NULL)
+            if (ispName != NULL) {
                 isp = QString::fromUtf8(ispName);
+                free((char *) ispName);
+            }
         }
+        // Since addr really is an alias that points directly the the data
+        // stored by the QHostAddress data structure, it doesn't need to be
+        // deleted.
 
         timeZone = QString::fromUtf8(GeoIP_time_zone_by_country_and_region(r->country_code, r->region));
 
@@ -72,10 +76,21 @@ QGeoIPRecord QGeoIP::recordByAddr(const QHostAddress & ip) {
             city = QString::fromUtf8(r->city);
 
             regionName = GeoIP_region_name_by_code(r->country_code, r->region);
-            if (regionName != NULL)
+            if (regionName != NULL) {
                 region = QString::fromUtf8(regionName);
+                // No free() call required for regionName, since it is actually
+                // pointing to a hardcoded string in libGeoIP's C code.
+            }
 
-            return QGeoIPRecord(country, region, city, isp, timeZone, r->latitude, r->longitude, r->country_code, r->continent_code);
+            // Create the result that will be returned to the user.
+            QGeoIPRecord result(country, region, city, isp, timeZone, r->latitude, r->longitude, r->country_code, r->continent_code);
+
+            // Delete the GeoIPRecord returned by GeoIP_record_by_addr() from
+            // memory now that it is no longer needed.
+            GeoIPRecord_delete(r);
+
+            // Return the result we found.
+            return result;
         }
     }
 
