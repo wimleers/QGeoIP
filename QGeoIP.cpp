@@ -54,6 +54,10 @@ QGeoIPRecord QGeoIP::recordByAddr(const QHostAddress & ip) {
 
         // Look up the ISP for this IP address, but only if an ISP DB is open.
         isp = QString::null;
+        // Set addr to the same value again, since the GeoIP_record_by_addr()
+        // call above may (sometimes) change addr, thereby generating
+        // incorrect results.
+        // addr = ip.toString().toAscii().constData();
         if (this->isOpen(this->ISPDB)) {
             if (ip.protocol() == QAbstractSocket::IPv6Protocol)
                 ispName = GeoIP_org_by_name_v6(this->ISPDB, addr);
