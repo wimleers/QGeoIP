@@ -40,7 +40,7 @@ void QGeoIP::closeDatabases() {
  *   The corresponding QGeoIPRecord.
  */
 QGeoIPRecord QGeoIP::recordByAddr(const QHostAddress & ip) {
-    static QString country, city, region, isp, timeZone;
+    QString country, city, region, isp, timeZone;
     const char * addr, * regionName, * ispName;
 
     if (this->isOpen(this->cityDB) && !ip.isNull()) {
